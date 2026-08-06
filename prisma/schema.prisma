@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Hashed password
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipes   Recipe[]
+  favorites Favorite[]
+}
+
+model Recipe {
+  id          Int      @id @default(autoincrement())
+  title       String
+  duration    String   // "30 min", "1 hour", etc.
+  img         String?  // Optional image URL
+  isPublic    Boolean  @default(false)  // Private by default
+
+  userId      Int?     // Optional because user might be deleted
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories  RecipeCategory[]
+  favorites   Favorite[]
+  ingredients RecipeIngredient[]
+  steps       ProcedureStep[]
+}
+
+model ProcedureStep {
+  id          Int      @id @default(autoincrement())
+  stepNumber  Int
+  description String   @db.Text
+  recipeId    Int
+  recipe      Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, stepNumber])  // Prevent duplicate step numbers
+}
+
+model RecipeIngredient {
+  recipeId     Int
+  ingredientId Int
+  quantity     String?  // Optional: "2 cups", "1 tbsp"
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@id([recipeId, ingredientId])
+}
+
+model Ingredient {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // Prevent duplicates
+  createdAt   DateTime @default(now())  // Bonus: track when ingredient was added
+  
+  recipeIngredients RecipeIngredient[]
+}
+
+model RecipeCategory {
+  recipeId   Int
+  categoryId Int
+
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([recipeId, categoryId])
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  img         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recipeCategories RecipeCategory[]
+}
+
+model Favorite {
+  userId   Int
+  recipeId Int
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, recipeId])
+}
