@@ -1,38 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
-
-interface RegisterRequest{
-    email: string;
-    password: string;
-}
+import { registerUserSchema } from "@/lib/validations/users";
+import { z } from "zod/v4";
 
 export async function POST(request: NextRequest) {
     try{
         const body = await request.json()
-        const{email, password} = body as RegisterRequest
+        const validatedData = registerUserSchema.parse(body) 
+        const{name, email, password} = validatedData
 
-        if(!email || !password){
-            return NextResponse.json(
-                {success: false, error: "Email and Password are required"},
-                {status: 400}
-            )
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
-            return NextResponse.json(
-                { success: false, error: 'Please provide a valid email address' },
-                { status: 400 }
-            )
-        }
-
-        if (password.length < 8) {
-            return NextResponse.json(
-                { success: false, error: 'Password must be at least 8 characters' },
-                { status: 400 }
-            )
-        }
+        
 
         const existingUser = await prisma.user.findUnique({
             where: {email}
@@ -48,11 +26,13 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.create({
             data: {
+                name,
                 email,
                 password: hashedPassword
             },
             select: {
                 id: true,
+                name: true,
                 email: true,
                 createdAt: true,
                 updatedAt: true
@@ -64,6 +44,16 @@ export async function POST(request: NextRequest) {
             {status: 201}
         )
     } catch(error){
+        if(error instanceof z.ZodError){
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Validation Failed",
+                    details: error.issues
+                },
+                {status:400}                
+            )
+        }
         console.error('Registration error:', error)
         return NextResponse.json(
             { success: false, error: 'Something went wrong. Please try again.' },
