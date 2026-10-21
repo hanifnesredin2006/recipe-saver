@@ -6,12 +6,16 @@ const { auth } = NextAuth(authEdgeConfig)
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const isAuthPage = req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register"
+  const isPublicPage =
+    req.nextUrl.pathname === "/" ||
+    req.nextUrl.pathname === "/login" ||
+    req.nextUrl.pathname === "/register"
 
-  if (!isLoggedIn && !isAuthPage) {
+  if (!isLoggedIn && !isPublicPage) {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin))
   }
-  if (isLoggedIn && isAuthPage) {
+
+  if (isLoggedIn && isPublicPage) {
     return NextResponse.redirect(new URL("/recipes", req.nextUrl.origin))
   }
 })

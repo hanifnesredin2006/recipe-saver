@@ -105,7 +105,7 @@ export default function UpdateUserForm({ name, email }: UpdateUserFormProps) {
   }
 
   return (
-    <div className="mt-6 max-w-md space-y-8">
+    <div className="mt-6 max-w-2xl space-y-8">
       {/* Update name / password */}
       <form onSubmit={handleUpdate} className="space-y-5 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
         <div>

@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { registerUserSchema } from "@/lib/validations/users";
 import { z } from "zod/v4";
 
+
 export async function POST(request: NextRequest) {
     try{
         const body = await request.json()
@@ -45,11 +46,14 @@ export async function POST(request: NextRequest) {
         )
     } catch(error){
         if(error instanceof z.ZodError){
+
+            const readableMessage = error.issues[0]?.message || "Validation Failed";
+
             return NextResponse.json(
                 {
                     success: false,
-                    error: "Validation Failed",
-                    details: error.issues
+                    error: readableMessage,
+                    details: error.flatten().fieldErrors
                 },
                 {status:400}                
             )

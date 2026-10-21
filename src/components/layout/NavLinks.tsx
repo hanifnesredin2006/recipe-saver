@@ -2,11 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, Plus } from "lucide-react"
+import { BookOpen } from "lucide-react"
 
 const links = [
   { href: "/recipes", label: "Recipes", icon: BookOpen },
-  { href: "/recipes/create", label: "Create Recipe", icon: Plus },
 ]
 
 interface NavLinksProps {
